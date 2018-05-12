@@ -1,54 +1,43 @@
 import "reflect-metadata";
-import {JsonController, Param, Body, BodyParams, Post, Get, Put, Delete} from "routing-controllers"
+import {JsonController, Body, Param,Req, Post, Get, Put, Delete} from "routing-controllers"
 import {Task}  from "../entity/Task"
-import {createConnection} from "typeorm";
+import {createConnection, Repository, getConnectionManager} from "typeorm";
+import { EntityFromParam, EntityFromBody } from "typeorm-routing-controllers-extensions";
 
-// export class Task{
-    
-//     @IsInt()
-//     id: number;
-    
-//     @MinLength(4,{
-//         message:"Content Too Short"
-//     })
-//     @IsString()
-//     content: string;
-    
-//     @IsBoolean()
-//     completed?: boolean = false;
-    
-//     @IsDate()
-//     createdAt?: Date;
-// }
 
 @JsonController()
 export class TaskController {
+    private taskRepository: Repository<Task>
+    
+    constructor(){
+        this.taskRepository = getConnectionManager().get().getRepository(Task)
+    }
         
     @Get('/tasks')
         getAllTasks(){
-            return "all tasks"
-
+            return this.taskRepository.find()
         }
+
     @Get('/tasks/:id')
-        getTask(@Param('id') id:number){
-            return `task ${id}`
+        getTask(@EntityFromParam('id') task:Task){
+            return task
         }
+
     @Post('/tasks')
-        addTask(@BodyParams() task:any){
-            return task;
-            // createConnection().then(()=>{
-            //     let newTask = new Task()
-            //     newTask = task
-            // })
-            // return `task added`
+        addTask(@EntityFromBody() task:Task){
+               return this.taskRepository.save(task)
         }
-    @Delete('tasks/:id')
-        deleteTask(@Param('id') id:number){
-            return `removing user ${id}`
+
+    @Delete('/tasks/:id')
+        deleteTask(@EntityFromParam('id') task:Task){
+            return this.taskRepository.remove(task).then(task=>task)
 
         }
-    @Put('tasks/:id')
-        updateTask(@Param('id') id:number, @Body() task:Task){
-            return `Update user ${id}`
+
+    @Put('/tasks/:id')
+        updateTask(@EntityFromParam('id') old:Task, @EntityFromBody() task:Task){
+            old = task
+            this.taskRepository.save(old).then(task=>task)
+            
         }
 }

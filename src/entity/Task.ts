@@ -5,7 +5,6 @@ import { MinLength, IsInt, IsDate, IsBoolean, IsString } from "class-validator";
 export class Task{
     
     @PrimaryGeneratedColumn()
-    @IsInt()
     id?: number;
     
     @Column('text')
@@ -21,5 +20,5 @@ export class Task{
     
     @Column()
     @IsDate()
-    createdAt?: Date;
+    createdAt?: Date = new Date();
 }
